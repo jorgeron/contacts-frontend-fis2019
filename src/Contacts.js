@@ -13,6 +13,7 @@ class Contacts extends React.Component {
         this.handleEdit = this.handleEdit.bind(this);
         this.handleCloseError = this.handleCloseError.bind(this);
         this.addContact = this.addContact.bind(this);
+        this.handleDelete = this.handleDelete.bind(this);
     }
 
 
@@ -45,6 +46,12 @@ class Contacts extends React.Component {
         });
     }
 
+    handleDelete(contact) {
+        this.setState(prevState => ({
+            contacts: prevState.contacts.filter((c) => c.name !== contact.name)
+        }));
+    }
+
     render() {
         return(
             <div>
@@ -58,7 +65,8 @@ class Contacts extends React.Component {
                 </tr>
             </thead>
             {this.state.contacts.map((contact) =>
-                <Contact contact={contact} onEdit={this.handleEdit}/>
+                <Contact contact={contact} onEdit={this.handleEdit}
+                onDelete={this.handleDelete}/>
             )}
             <NewContact onAddContact={this.addContact} />
             </table>
