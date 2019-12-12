@@ -2,13 +2,15 @@ import React from 'react';
 import Contact from './Contact.js';
 import Alert from './Alert.js';
 import NewContact from './NewContact.js';
+import EditContact from './EditContact.js';
 
 class Contacts extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             errorInfo: null,
-            contacts: this.props.contacts
+            contacts: this.props.contacts,
+            isEditing: {}
         };
         this.handleEdit = this.handleEdit.bind(this);
         this.handleCloseError = this.handleCloseError.bind(this);
@@ -18,8 +20,45 @@ class Contacts extends React.Component {
 
 
     handleEdit(contact){
-        this.setState({
-            selectedContact: contact.name
+        this.setState(prevState => ({
+            isEditing: {...prevState.isEditing, [contact.name]: contact}
+        }));
+    }
+
+    handleCancel(name, contact) {
+        this.setState(prevState => {
+            const isEditing = Object.assign({}, prevState.isEditing);
+            delete isEditing[name];
+            return {
+                isEditing: isEditing
+            }
+        });
+    }
+
+    handleChange(name, contact) {
+        this.setState(prevState => ({
+            isEditing: {...prevState.isEditing, [name]: contact}
+        }));
+    }
+
+    handleSave(name, contact) {
+        this.setState(prevState => {
+            const isEditing = Object.assign({}, prevState.isEditing);
+            delete isEditing[name];
+
+            if (name === contact.name) {
+                const contacts = prevState.contacts;
+                const pos = contacts.findIndex(c => c.name === contact.name);
+                return {
+                    contacts: [...contacts.slice(0,pos), Object.assign({}, contact), ...contacts.slice(pos+1)],
+                    isEditing: isEditing
+                }
+            }
+
+            return {
+                errorInfo: "Cannot edit name"
+            }
+            
         });
     }
 
@@ -65,8 +104,14 @@ class Contacts extends React.Component {
                 </tr>
             </thead>
             {this.state.contacts.map((contact) =>
-                <Contact contact={contact} onEdit={this.handleEdit}
+                !this.state.isEditing[contact.name] ?
+                <Contact key={contact.name} contact={contact} onEdit={this.handleEdit}
                 onDelete={this.handleDelete}/>
+                :
+                <EditContact key={contact.name} contact={this.state.isEditing[contact.name]}
+                    onCancel={this.handleCancel.bind(this, contact.name)}
+                    onChange={this.handleChange.bind(this, contact.name)}
+                    onSave={this.handleSave.bind(this, contact.name)}/>
             )}
             <NewContact onAddContact={this.addContact} />
             </table>
